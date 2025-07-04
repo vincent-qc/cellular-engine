@@ -1,9 +1,3 @@
-/**
- * @license
- * Copyright 2025 Google LLC
- * SPDX-License-Identifier: Apache-2.0
- */
-
 import cors from 'cors';
 import dotenv from 'dotenv';
 import express from 'express';

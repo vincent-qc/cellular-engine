@@ -5,16 +5,16 @@
  */
 
 import eslint from '@eslint/js';
-import tseslint from 'typescript-eslint';
-import reactPlugin from 'eslint-plugin-react';
-import reactHooks from 'eslint-plugin-react-hooks';
 import prettierConfig from 'eslint-config-prettier';
 import importPlugin from 'eslint-plugin-import';
-import globals from 'globals';
 import licenseHeader from 'eslint-plugin-license-header';
-import noRelativeCrossPackageImports from './eslint-rules/no-relative-cross-package-imports.js';
+import reactPlugin from 'eslint-plugin-react';
+import reactHooks from 'eslint-plugin-react-hooks';
+import globals from 'globals';
 import path from 'node:path'; // Use node: prefix for built-ins
 import url from 'node:url';
+import tseslint from 'typescript-eslint';
+import noRelativeCrossPackageImports from './eslint-rules/no-relative-cross-package-imports.js';
 
 // --- ESM way to get __dirname ---
 const __filename = url.fileURLToPath(import.meta.url);
@@ -141,18 +141,7 @@ export default tseslint.config(
     plugins: {
       'license-header': licenseHeader,
     },
-    rules: {
-      'license-header/header': [
-        'error',
-        [
-          '/**',
-          ' * @license',
-          ' * Copyright 2025 Google LLC',
-          ' * SPDX-License-Identifier: Apache-2.0',
-          ' */',
-        ],
-      ],
-    },
+    rules: {},
   },
   // extra settings for scripts that we run directly with node
   {

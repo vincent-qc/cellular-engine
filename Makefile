@@ -1,9 +1,9 @@
-# Makefile for gemini-cli
+# Makefile for gemini-api
 
-.PHONY: help install build build-sandbox build-all test lint format preflight clean start debug release run-npx create-alias
+.PHONY: help install build build-sandbox build-all test lint format preflight clean release run-npx create-alias
 
 help:
-	@echo "Makefile for gemini-cli"
+	@echo "Makefile for gemini-api"
 	@echo ""
 	@echo "Usage:"
 	@echo "  make install          - Install npm dependencies"
@@ -15,10 +15,8 @@ help:
 	@echo "  make format           - Format the code"
 	@echo "  make preflight        - Run formatting, linting, and tests"
 	@echo "  make clean            - Remove generated files"
-	@echo "  make start            - Start the Gemini CLI"
-	@echo "  make debug            - Start the Gemini CLI in debug mode"
 	@echo "  make release          - Publish a new release"
-	@echo "  make run-npx          - Run the CLI using npx (for testing the published package)"
+	@echo "  make run-npx          - Run the API using npx (for testing the published package)"
 	@echo "  make create-alias     - Create a 'gemini' alias for your shell"
 
 install:
@@ -48,17 +46,11 @@ preflight:
 clean:
 	npm run clean
 
-start:
-	npm run start
-
-debug:
-	npm run debug
-
 release:
 	npm run publish:release
 
 run-npx:
-	npx https://github.com/google-gemini/gemini-cli
+	npx https://github.com/vincent-qc/gemini-api
 
 create-alias:
 	scripts/create_alias.sh
