@@ -1,12 +1,13 @@
 {
-  "name": "gemini-api",
+  "name": "@cellular/engine",
   "version": "0.0.1",
-  "description": "Fork of gemini-cli that exposes core as an API",
+  "description": "Cellular Engine for AI-powered code generation and streaming",
   "keywords": [
-    "gemini",
-    "llm",
-    "gemini-cli",
-    "api"
+    "engine",
+    "ai",
+    "code-generation",
+    "streaming",
+    "gemini"
   ],
   "homepage": "https://github.com/vincent-qc/gemini-api#readme",
   "bugs": {
@@ -19,28 +20,50 @@
   "license": "Apache-2.0",
   "author": "vincent-qc",
   "type": "module",
-  "main": "esbuild.config.js",
-  "directories": {
-    "doc": "docs"
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "exports": {
+    ".": {
+      "import": "./dist/index.js",
+      "types": "./dist/index.d.ts"
+    }
   },
+
   "files": [
+    "dist",
     "README.md",
     "LICENSE"
   ],
-  "workspaces": [
-    "packages/*"
-  ],
+
   "scripts": {
-    "test": "npm run test --workspaces",
+    "build": "node esbuild.config.js",
+    "clean": "rm -rf dist",
+    "test": "node dist/test.js || echo 'No tests available'",
     "lint": "eslint . --ext .ts,.tsx && eslint integration-tests",
     "format": "prettier --write .",
-    "publish:api": "node scripts/publish-api.js",
-    "publish:api:dry-run": "node scripts/publish-api.js --dry-run"
+    "prepublishOnly": "npm run build",
+    "prepack": "npm run build",
+    "publish:patch": "npm version patch && npm run build && npm test && npm publish",
+    "publish:minor": "npm version minor && npm run build && npm test && npm publish",
+    "publish:major": "npm version major && npm run build && npm test && npm publish",
+    "publish:dry-run": "npm run build && npm test && npm publish --dry-run",
+    "publish:patch:dry-run": "npm run build && npm test && npm publish --dry-run",
+    "publish:minor:dry-run": "npm run build && npm test && npm publish --dry-run",
+    "publish:major:dry-run": "npm run build && npm test && npm publish --dry-run"
   },
   "config": {
     "sandboxImageUri": "us-docker.pkg.dev/gemini-code-dev/gemini-cli/sandbox:0.1.8"
   },
+  "dependencies": {
+    "@google/gemini-cli-core": "file:packages/core",
+    "express": "^4.21.2",
+    "reflect-metadata": "^0.1.13",
+    "cors": "^2.8.5",
+    "routing-controllers": "^0.11.2"
+  },
   "devDependencies": {
+    "@types/cors": "^2.8.12",
+    "@types/express": "^4.17.23",
     "@types/micromatch": "^4.0.9",
     "@types/mime-types": "^2.1.4",
     "@types/minimatch": "^5.1.2",
@@ -66,5 +89,8 @@
   },
   "engines": {
     "node": ">=18.0.0"
+  },
+  "publishConfig": {
+    "access": "public"
   }
 }

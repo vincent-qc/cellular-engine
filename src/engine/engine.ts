@@ -1,131 +1,105 @@
-/**
- * @license
- * Copyright 2025 Google LLC
- * SPDX-License-Identifier: Apache-2.0
- */
-
 import {
+  ApprovalMode,
   AuthType,
   ContentGeneratorConfig,
+  Config as CoreConfig,
   DEFAULT_GEMINI_MODEL,
+  executeToolCall,
   GeminiClient,
   GeminiEventType,
+  loadServerHierarchicalMemory,
   ServerGeminiContentEvent,
   ServerGeminiToolCallRequestEvent,
   ToolCallRequestInfo,
   ToolRegistry,
-  executeToolCall,
-  loadServerHierarchicalMemory,
 } from '@google/gemini-cli-core';
 import { FunctionDeclaration, Part } from '@google/genai';
-import { APIConfig } from './config.js';
+import { randomUUID } from 'node:crypto';
 
-export class EngineService {
+
+class EngineService {
   private client: GeminiClient;
-  private config: APIConfig;
+  private config: CoreConfig;
+  private sessionId: string;
+  private debug: boolean;
+
   private toolRegistry?: ToolRegistry;
   private initialized = false;
   private memoryContent: string = '';
 
-  constructor(apiKey: string, workingDir: string) {
-    console.log('🔧 Initializing EngineService...');
-    console.log('Working directory:', workingDir);
-    console.log('API key present:', !!apiKey);
-    
-    this.config = new APIConfig(apiKey, workingDir);
+  constructor(dir: string, fullContext: boolean = false, sessionId?: string, apikey?: string, debug: boolean = false) {
+    if (debug) {
+      console.log(`⚙️ Configuring EngineService at ${dir}`);
+    }
+
+    if (apikey) {
+      process.env.GEMINI_API_KEY = apikey;
+      (debug && console.log(`⚙️ GEMINI_API_KEY set to ${apikey.substring(0, 6)}***`));
+    }
+
+    if (!sessionId) {
+      sessionId = randomUUID().toString();
+      (debug && console.log(`⚙️ No session ID provided, generating new one: ${sessionId}`));
+    }
+
+    this.config = new CoreConfig({
+      targetDir: dir,
+      approvalMode: ApprovalMode.DEFAULT,
+      debugMode: debug,
+      fullContext,
+      sessionId,
+      cwd: dir,
+      model: DEFAULT_GEMINI_MODEL
+    })
+
     this.client = new GeminiClient(this.config);
-  }
+    this.sessionId = sessionId;
+    this.debug = debug;
 
-  private async ensureInitialized() {
-    if (!this.initialized) {
-      console.log('🔄 Initializing engine...');
-      
-      const contentGeneratorConfig: ContentGeneratorConfig = {
-        authType: AuthType.USE_GEMINI,
-        model: DEFAULT_GEMINI_MODEL,
-        apiKey: this.config.getApiKey(),
-      };
-
-      try {
-        console.log('📡 Initializing Gemini client...');
-        await this.client.initialize(contentGeneratorConfig);
-        console.log('✅ Gemini client initialized');
-        
-        console.log('🔧 Getting tool registry...');
-        this.toolRegistry = await this.config.getToolRegistry();
-        console.log('✅ Tool registry ready');
-        
-        console.log('🧠 Loading hierarchical memory context...');
-        const fileService = this.config.getFileDiscoveryService();
-        const { memoryContent, fileCount } = await loadServerHierarchicalMemory(
-          this.config.getWorkingDir(),
-          this.config.getDebugMode(),
-          fileService,
-          this.config.getExtensionContextFilePaths(),
-        );
-        this.memoryContent = memoryContent;
-        console.log(`✅ Loaded ${fileCount} context files (${memoryContent.length} chars)`);
-        
-        this.initialized = true;
-        console.log('✅ Engine initialization complete');
-      } catch (error) {
-        console.error('❌ Engine initialization failed:', error);
-        throw error;
-      }
+    if (debug) {
+      console.log(`⚙️ Configured engine with Session ID: ${this.sessionId}`);
     }
   }
 
-  // Stream AI responses with tool execution support
-  async *stream(
+
+   async *stream(
     message: string,
     context?: string,
   ): AsyncGenerator<string, void, unknown> {
-    console.log('💬 Starting stream for message:', message.substring(0, 50) + '...');
+    if (this.debug) {
+      console.log('💬 Starting stream for message:', message.substring(0, 50) + '...');
+    }
     
     await this.ensureInitialized();
 
-    // Use the hierarchical memory context instead of simple concatenation
     const fullMessage = context ? `${message}\n\nAdditional Context: ${context}` : message;
-    console.log('📝 Full message length:', fullMessage.length);
 
     const abortController = new AbortController();
     let currentMessages: Part[] = [{ text: fullMessage }];
 
     try {
       while (true) {
-        console.log('🔄 Calling sendMessageStream...');
         const stream = this.client.sendMessageStream(
           currentMessages,
           abortController.signal,
         );
 
-        let eventCount = 0;
         const toolCallRequests: ToolCallRequestInfo[] = [];
 
         for await (const event of stream) {
-          eventCount++;
-          
           if (event.type === GeminiEventType.Content) {
             const contentEvent = event as ServerGeminiContentEvent;
             const token = contentEvent.value || '';
             yield token;
-            
-            if (eventCount % 5 === 0) {
-              console.log(`📤 Processed ${eventCount} events`);
-            }
           } else if (event.type === GeminiEventType.ToolCallRequest) {
             const toolCallEvent = event as ServerGeminiToolCallRequestEvent;
             toolCallRequests.push(toolCallEvent.value);
-            console.log(`🔧 Tool call requested: ${toolCallEvent.value.name}`);
+            (this.debug && console.log(`🕒 Tool call requested: ${toolCallEvent.value.name}`));
           }
         }
 
-        console.log(`✅ Stream completed. Total events: ${eventCount}`);
-
         // If there are tool calls, execute them and continue the conversation
         if (toolCallRequests.length > 0) {
-          console.log(`🛠️ Executing ${toolCallRequests.length} tool calls...`);
-          
           const toolResponseParts: Part[] = [];
 
           for (const toolCallRequest of toolCallRequests) {
@@ -142,7 +116,7 @@ export class EngineService {
                   `❌ Error executing tool ${toolCallRequest.name}: ${toolResponse.resultDisplay || toolResponse.error.message}`,
                 );
                 yield `\n\nError executing tool ${toolCallRequest.name}: ${toolResponse.resultDisplay || toolResponse.error.message}\n\n`;
-                return; // Exit on tool error
+                return;
               }
 
               if (toolResponse.responseParts) {
@@ -159,20 +133,14 @@ export class EngineService {
                 }
               }
 
-              console.log(`✅ Tool ${toolCallRequest.name} executed successfully`);
             } catch (error) {
               console.error(`❌ Tool execution failed:`, error);
               yield `\n\nTool execution failed: ${error}\n\n`;
-              return; // Exit on tool error
+              return;
             }
           }
-
-          // Continue the conversation with tool responses
           currentMessages = toolResponseParts;
-          console.log('🔄 Continuing conversation with tool responses...');
         } else {
-          // No more tool calls, conversation is complete
-          console.log('✅ Conversation complete');
           break;
         }
       }
@@ -182,7 +150,6 @@ export class EngineService {
     }
   }
 
-  // Get available tools
   async getTools(): Promise<FunctionDeclaration[]> {
     await this.ensureInitialized();
     if (!this.toolRegistry) {
@@ -191,7 +158,6 @@ export class EngineService {
     return this.toolRegistry.getFunctionDeclarations();
   }
 
-  // Execute a specific tool
   async executeTool(toolName: string, params: Record<string, unknown>) {
     await this.ensureInitialized();
     if (!this.toolRegistry) {
@@ -207,8 +173,50 @@ export class EngineService {
     return await tool.execute(params, abortController.signal);
   }
 
-  // Get memory content for debugging
   getMemoryContent(): string {
     return this.memoryContent;
   }
+
+  private async ensureInitialized() {
+    if (!this.initialized) {
+      if (this.debug) {
+        console.log(`🔧 Initializing engine with Session ID: ${this.sessionId}`);
+      }
+      
+      const contentGeneratorConfig: ContentGeneratorConfig = {
+        authType: AuthType.USE_GEMINI,
+        model: DEFAULT_GEMINI_MODEL,
+        apiKey: process.env.GEMINI_API_KEY,
+      };
+
+      try {
+        await this.client.initialize(contentGeneratorConfig);
+        (this.debug && console.log('🔧 Gemini client initialized'));
+        
+        this.toolRegistry = await this.config.getToolRegistry();
+        (this.debug && console.log('🔧 Tool registry ready'));
+        
+        const fileService = await this.config.getFileService();
+        const { memoryContent, fileCount } = await loadServerHierarchicalMemory(
+          this.config.getWorkingDir(), 
+          this.config.getDebugMode(),
+          fileService,
+          this.config.getExtensionContextFilePaths(),
+        );
+        this.memoryContent = memoryContent;
+        (this.debug && console.log(`🔧 Loaded ${fileCount} context files (${memoryContent.length} chars)`));
+        
+        this.initialized = true;
+
+        (this.debug && console.log('🔧 Engine initialization complete'));
+      } catch (error) {
+        (this.debug && console.error('❌ Engine initialization failed:', error));
+        throw error;
+      }
+    }
+  }
 }
+
+const engine = (dir: string, fullContext: boolean = false, sessionId?: string, apikey?: string, debug: boolean = false) => new EngineService(dir, fullContext, sessionId, apikey, debug)
+
+export { engine, EngineService };

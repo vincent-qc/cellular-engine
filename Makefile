@@ -1,6 +1,6 @@
 # Makefile for gemini-api
 
-.PHONY: help install build build-sandbox build-all test lint format preflight clean release run-npx create-alias
+.PHONY: help install build build-sandbox build-all test lint format preflight clean release publish-engine publish-engine-dry-run run-npx create-alias
 
 help:
 	@echo "Makefile for gemini-api"
@@ -16,6 +16,8 @@ help:
 	@echo "  make preflight        - Run formatting, linting, and tests"
 	@echo "  make clean            - Remove generated files"
 	@echo "  make release          - Publish a new release"
+	@echo "  make publish-engine   - Publish @cellular/engine package"
+	@echo "  make publish-engine-dry-run - Dry run publish @cellular/engine package"
 	@echo "  make run-npx          - Run the API using npx (for testing the published package)"
 	@echo "  make create-alias     - Create a 'gemini' alias for your shell"
 
@@ -48,6 +50,12 @@ clean:
 
 release:
 	npm run publish:release
+
+publish-engine:
+	cd packages/engine && npm run publish:patch
+
+publish-engine-dry-run:
+	cd packages/engine && npm run publish:dry-run
 
 run-npx:
 	npx https://github.com/vincent-qc/gemini-api
