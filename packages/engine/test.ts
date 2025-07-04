@@ -1,4 +1,4 @@
-import { engine, stream } from './index';
+import { engine, stream } from './index.js';
 
 console.log('🧪 Testing @cellular/engine exports...');
 

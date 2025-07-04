@@ -159,22 +159,3 @@ const fileContent = await engineInstance.executeTool('read-file', {
 });
 console.log('File content:', fileContent);
 ```
-
-## Publishing
-
-The `@cellular/engine` package can be published using npm scripts:
-
-```bash
-# Publish with patch version bump (0.0.1 -> 0.0.2)
-npm run publish:patch
-
-# Publish with specific version bump
-npm run publish:minor    # 0.0.1 -> 0.1.0  
-npm run publish:major    # 0.0.1 -> 1.0.0
-
-# Dry run (test without actually publishing)
-npm run publish:dry-run
-npm run publish:patch:dry-run
-npm run publish:minor:dry-run
-npm run publish:major:dry-run
-```

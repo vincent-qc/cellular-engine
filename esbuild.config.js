@@ -1,9 +1,3 @@
-/**
- * @license
- * Copyright 2025 Google LLC
- * SPDX-License-Identifier: Apache-2.0
- */
-
 import esbuild from 'esbuild';
 import { createRequire } from 'module';
 import path from 'path';

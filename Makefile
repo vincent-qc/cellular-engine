@@ -1,9 +1,7 @@
-# Makefile for gemini-api
-
 .PHONY: help install build build-sandbox build-all test lint format preflight clean release publish-engine publish-engine-dry-run run-npx create-alias
 
 help:
-	@echo "Makefile for gemini-api"
+	@echo "Makefile for cellular-api"
 	@echo ""
 	@echo "Usage:"
 	@echo "  make install          - Install npm dependencies"

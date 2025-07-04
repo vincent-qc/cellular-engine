@@ -1,21 +1,22 @@
 {
-  "name": "@cellular/engine",
+  "name": "@cellular-ai/engine",
   "version": "0.0.2",
-  "description": "Cellular Engine for AI-powered code generation and streaming",
+  "description": "API for building custom AI coding editors/agents/platforms",
   "keywords": [
     "engine",
     "ai",
     "code-generation",
+    "api",
     "streaming",
     "gemini"
   ],
-  "homepage": "https://github.com/vincent-qc/gemini-api#readme",
+  "homepage": "https://github.com/vincent-qc/cellular-engine#readme",
   "bugs": {
-    "url": "https://github.com/vincent-qc/gemini-api/issues"
+    "url": "https://github.com/vincent-qc/cellular-engine/issues"
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/vincent-qc/gemini-api.git"
+    "url": "git+https://github.com/vincent-qc/cellular-engine.git"
   },
   "license": "Apache-2.0",
   "author": "vincent-qc",
