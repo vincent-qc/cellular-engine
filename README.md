@@ -20,8 +20,6 @@
 	/>
 </div>
 
----
-
 ## Features
 
 - **AI-powered code generation** with streaming support
