@@ -14,8 +14,8 @@ help:
 	@echo "  make preflight        - Run formatting, linting, and tests"
 	@echo "  make clean            - Remove generated files"
 	@echo "  make release          - Publish a new release"
-	@echo "  make publish-engine   - Publish @cellular/engine package"
-	@echo "  make publish-engine-dry-run - Dry run publish @cellular/engine package"
+	@echo "  make publish-engine   - Publish @cellular-ai/engine package"
+	@echo "  make publish-engine-dry-run - Dry run publish @cellular-ai/engine package"
 	@echo "  make run-npx          - Run the API using npx (for testing the published package)"
 	@echo "  make create-alias     - Create a 'gemini' alias for your shell"
 

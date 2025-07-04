@@ -1,4 +1,4 @@
-# @cellular/engine
+# @cellular-ai/engine
 
 A powerful AI engine for code generation and streaming, built on top of Google's Gemini API.
 
@@ -13,7 +13,7 @@ A powerful AI engine for code generation and streaming, built on top of Google's
 ## Installation
 
 ```bash
-npm install @cellular/engine
+npm install @cellular-ai/engine
 ```
 
 ## Quick Start
@@ -21,7 +21,7 @@ npm install @cellular/engine
 ### Basic Usage
 
 ```typescript
-import { engine, stream } from '@cellular/engine';
+import { engine, stream } from '@cellular-ai/engine';
 
 // Create an engine instance
 const engineInstance = engine('./my-project', true, 'session-123', 'your-api-key');
@@ -36,7 +36,7 @@ for await (const token of engineInstance.stream('Write a function to sort an arr
 
 ```typescript
 import express from 'express';
-import { stream } from '@cellular/engine';
+import { stream } from '@cellular-ai/engine';
 
 const app = express();
 const engineInstance = engine('./my-project', true, 'session-123', 'your-api-key');
@@ -131,7 +131,7 @@ console.log('Memory content:', memory);
 ### Code Generation
 
 ```typescript
-import { engine } from '@cellular/engine';
+import { engine } from '@cellular-ai/engine';
 
 const engineInstance = engine('./my-project', true, 'code-gen-session');
 
@@ -145,7 +145,7 @@ for await (const token of engineInstance.stream(
 ### Tool Execution
 
 ```typescript
-import { engine } from '@cellular/engine';
+import { engine } from '@cellular-ai/engine';
 
 const engineInstance = engine('./my-project');
 

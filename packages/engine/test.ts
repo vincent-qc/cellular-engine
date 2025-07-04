@@ -1,6 +1,6 @@
 import { engine, stream } from './index.js';
 
-console.log('🧪 Testing @cellular/engine exports...');
+console.log('🧪 Testing @cellular-ai/engine exports...');
 
 // Test that engine function exists
 if (typeof engine === 'function') {
