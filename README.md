@@ -181,3 +181,5 @@ console.log('File content:', fileContent);
 ```
 
 ## License
+All code in this project is maintained under the [Apache-2.0 License](./LICENSE)
+
