@@ -1,6 +1,26 @@
-# @cellular-ai/engine
+<div align='center'>
+  <h1>@cellular-ai/engine</h1>
+  <p>API for building agentic coding editors/platforms</p>
+</div>
 
-A powerful AI engine for code generation and streaming, built on top of Google's Gemini API.
+<br>
+
+<div align='center'>
+	<img
+	    src="https://img.shields.io/github/license/vincent-qc/cellular-engine?style=for-the-badge"
+	    alt="License"
+	/>
+	<img
+		src='https://img.shields.io/github/languages/top/vincent-qc/cellular-engine.svg?style=for-the-badge'
+		alt='Language'
+	/>
+  <img
+		src='https://img.shields.io/badge/version-1.18.2-red?style=for-the-badge'
+		alt='MC Version'
+	/>
+</div>
+
+---
 
 ## Features
 
@@ -159,3 +179,5 @@ const fileContent = await engineInstance.executeTool('read-file', {
 });
 console.log('File content:', fileContent);
 ```
+
+## License
