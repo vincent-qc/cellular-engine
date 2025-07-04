@@ -13,7 +13,7 @@ const pkg = require(path.resolve(__dirname, 'package.json'));
 // Build the main bundle
 esbuild
   .build({
-    entryPoints: ['src/engine/index.ts'],
+    entryPoints: ['packages/engine/index.ts'],
     bundle: true,
     outfile: 'dist/index.js',
     platform: 'node',
@@ -49,7 +49,7 @@ esbuild
 // Build TypeScript declarations
 esbuild
   .build({
-    entryPoints: ['src/engine/index.ts'],
+    entryPoints: ['packages/engine/index.ts'],
     bundle: true,
     outfile: 'dist/index.d.ts',
     platform: 'node',
@@ -84,7 +84,7 @@ esbuild
 // Build test file
 esbuild
   .build({
-    entryPoints: ['src/engine/test.ts'],
+    entryPoints: ['packages/engine/test.ts'],
     bundle: true,
     outfile: 'dist/test.js',
     platform: 'node',
