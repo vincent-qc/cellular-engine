@@ -1,6 +1,6 @@
 {
   "name": "@cellular/engine",
-  "version": "0.0.1",
+  "version": "0.0.2",
   "description": "Cellular Engine for AI-powered code generation and streaming",
   "keywords": [
     "engine",
@@ -28,13 +28,11 @@
       "types": "./dist/index.d.ts"
     }
   },
-
   "files": [
     "dist",
     "README.md",
     "LICENSE"
   ],
-
   "scripts": {
     "build": "node esbuild.config.js",
     "clean": "rm -rf dist",
