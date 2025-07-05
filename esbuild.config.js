@@ -1,3 +1,4 @@
+import { execSync } from 'child_process';
 import esbuild from 'esbuild';
 import { createRequire } from 'module';
 import path from 'path';
@@ -7,8 +8,6 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 const require = createRequire(import.meta.url);
 const pkg = require(path.resolve(__dirname, 'package.json'));
-
-
 
 // Build the main bundle
 esbuild
@@ -46,40 +45,14 @@ esbuild
     process.exit(1);
   });
 
-// Build TypeScript declarations
-esbuild
-  .build({
-    entryPoints: ['packages/engine/index.ts'],
-    bundle: true,
-    outfile: 'dist/index.d.ts',
-    platform: 'node',
-    format: 'esm',
-    external: [
-      'express',
-      'cors',
-      'routing-controllers',
-      'reflect-metadata',
-      '@google/gemini-cli-core',
-      '@google/genai',
-      '@koa/cors',
-      '@koa/router',
-      'koa',
-      'koa-bodyparser',
-      'koa-compose'
-    ],
-    write: false,
-  })
-  .then((result) => {
-    // Extract type declarations from the bundle
-    const typeContent = result.outputFiles?.[0]?.text || '';
-    const fs = require('fs');
-    fs.writeFileSync('dist/index.d.ts', typeContent);
-    console.log('✅ TypeScript declarations built successfully');
-  })
-  .catch(() => {
-    console.error('❌ TypeScript declarations build failed');
-    process.exit(1);
-  });
+// Generate TypeScript declarations using tsc
+try {
+  execSync('npx tsc packages/engine/index.ts --declaration --emitDeclarationOnly --outDir dist --moduleResolution node --target es2022 --module esnext --allowSyntheticDefaultImports --esModuleInterop --skipLibCheck', { stdio: 'inherit' });
+  console.log('✅ TypeScript declarations built successfully');
+} catch (_error) {
+  console.error('❌ TypeScript declarations build failed');
+  process.exit(1);
+}
 
 // Build test file
 esbuild
