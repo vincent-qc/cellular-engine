@@ -28,7 +28,7 @@ class EngineService {
   private initialized = false;
   private memoryContent: string = '';
 
-  constructor(dir: string, fullContext: boolean,  apikey: string, debug: boolean, sessionId?: string) {
+  constructor(dir: string, fullContext: boolean, apikey?: string,  sessionId?: string, debug: boolean = false,) {
     if (debug) {
       console.log(`⚙️ Configuring EngineService at ${dir}`);
     }
@@ -39,7 +39,7 @@ class EngineService {
       }
       this.apikey = process.env.GEMINI_API_KEY;
       if (debug) {
-        console.log(`⚙️ GEMINI_API_KEY set to ${apikey.substring(0, 6)}***`);
+        console.log(`⚙️ GEMINI_API_KEY set to ${this.apikey.substring(0, 6)}***`);
       }
     } else {
       this.apikey = apikey;
@@ -239,6 +239,6 @@ class EngineService {
   }
 }
 
-const createEngine = (dir: string, fullContext: boolean = false, apikey: string, debug: boolean = false, sessionId?: string) => new EngineService(dir, fullContext, apikey, debug, sessionId)
+const createEngine = (dir: string, fullContext: boolean = false, debug: boolean = false, apikey?: string, sessionId?: string) => new EngineService(dir, fullContext, apikey, sessionId, debug)
 
 export { createEngine, EngineService };
