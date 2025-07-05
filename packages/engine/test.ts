@@ -1,9 +1,9 @@
-import { engine, stream } from './index.js';
+import { createEngine, stream } from './index.js';
 
 console.log('🧪 Testing @cellular-ai/engine exports...');
 
 // Test that engine function exists
-if (typeof engine === 'function') {
+if (typeof createEngine === 'function') {
   console.log('✅ engine function exported correctly');
 } else {
   console.error('❌ engine function not exported correctly');

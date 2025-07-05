@@ -20,6 +20,7 @@ import { randomUUID } from 'node:crypto';
 class EngineService {
   private client: GeminiClient;
   private config: CoreConfig;
+  private apikey: string;
   private sessionId: string;
   private debug: boolean;
 
@@ -27,19 +28,28 @@ class EngineService {
   private initialized = false;
   private memoryContent: string = '';
 
-  constructor(dir: string, fullContext: boolean = false, sessionId?: string, apikey?: string, debug: boolean = false) {
+  constructor(dir: string, fullContext: boolean,  apikey: string, debug: boolean, sessionId?: string) {
     if (debug) {
       console.log(`⚙️ Configuring EngineService at ${dir}`);
     }
 
-    if (apikey) {
-      process.env.GEMINI_API_KEY = apikey;
-      (debug && console.log(`⚙️ GEMINI_API_KEY set to ${apikey.substring(0, 6)}***`));
+    if (!apikey) {
+      if (!process.env.GEMINI_API_KEY) {
+        throw new Error('GEMINI_API_KEY is not set');
+      }
+      this.apikey = process.env.GEMINI_API_KEY;
+      if (debug) {
+        console.log(`⚙️ GEMINI_API_KEY set to ${apikey.substring(0, 6)}***`);
+      }
+    } else {
+      this.apikey = apikey;
     }
 
-    if (!sessionId) {
+    if (!sessionId || !sessionId.trim()) {
       sessionId = randomUUID().toString();
-      (debug && console.log(`⚙️ No session ID provided, generating new one: ${sessionId}`));
+      if (debug) {
+        console.log(`⚙️ No session ID provided, generating new one: ${sessionId}`);
+      }
     }
 
     this.config = new CoreConfig({
@@ -94,7 +104,9 @@ class EngineService {
           } else if (event.type === GeminiEventType.ToolCallRequest) {
             const toolCallEvent = event as ServerGeminiToolCallRequestEvent;
             toolCallRequests.push(toolCallEvent.value);
-            (this.debug && console.log(`🕒 Tool call requested: ${toolCallEvent.value.name}`));
+            if (this.debug) {
+              console.log(`🕒 Tool call requested: ${toolCallEvent.value.name}`);
+            }
           }
         }
 
@@ -186,15 +198,19 @@ class EngineService {
       const contentGeneratorConfig: ContentGeneratorConfig = {
         authType: AuthType.USE_GEMINI,
         model: DEFAULT_GEMINI_MODEL,
-        apiKey: process.env.GEMINI_API_KEY,
+        apiKey: this.apikey,
       };
 
       try {
         await this.client.initialize(contentGeneratorConfig);
-        (this.debug && console.log('🔧 Gemini client initialized'));
+        if (this.debug) {
+          console.log('🔧 Gemini client initialized');
+        }
         
         this.toolRegistry = await this.config.getToolRegistry();
-        (this.debug && console.log('🔧 Tool registry ready'));
+        if (this.debug) {
+          console.log('🔧 Tool registry ready');
+        }
         
         const fileService = await this.config.getFileService();
         const { memoryContent, fileCount } = await loadServerHierarchicalMemory(
@@ -204,19 +220,25 @@ class EngineService {
           this.config.getExtensionContextFilePaths(),
         );
         this.memoryContent = memoryContent;
-        (this.debug && console.log(`🔧 Loaded ${fileCount} context files (${memoryContent.length} chars)`));
+        if (this.debug) {
+          console.log(`🔧 Loaded ${fileCount} context files (${memoryContent.length} chars)`);
+        }
         
         this.initialized = true;
 
-        (this.debug && console.log('🔧 Engine initialization complete'));
+        if (this.debug) {
+          console.log('🔧 Engine initialization complete');
+        }
       } catch (error) {
-        (this.debug && console.error('❌ Engine initialization failed:', error));
+        if (this.debug) {
+          console.error('❌ Engine initialization failed:', error);
+        }
         throw error;
       }
     }
   }
 }
 
-const engine = (dir: string, fullContext: boolean = false, sessionId?: string, apikey?: string, debug: boolean = false) => new EngineService(dir, fullContext, sessionId, apikey, debug)
+const createEngine = (dir: string, fullContext: boolean = false, apikey: string, debug: boolean = false, sessionId?: string) => new EngineService(dir, fullContext, apikey, debug, sessionId)
 
-export { engine, EngineService };
+export { createEngine, EngineService };
