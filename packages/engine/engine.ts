@@ -3,6 +3,7 @@ import {
   AuthType,
   ContentGeneratorConfig,
   Config as CoreConfig,
+  DEFAULT_GEMINI_FLASH_MODEL,
   DEFAULT_GEMINI_MODEL,
   executeToolCall,
   GeminiClient,
@@ -58,7 +59,7 @@ class EngineService {
   private initialized = false;
   private memoryContent: string = '';
 
-  constructor(dir: string, fullContext: boolean, apikey?: string,  sessionId?: string, debug: boolean = false,) {
+  constructor(dir: string, fullContext: boolean, model?: 'pro' | 'flash', apikey?: string,  sessionId?: string, debug: boolean = false,) {
     if (debug) {
       console.log(`⚙️ Configuring EngineService at ${dir}`);
     }
@@ -82,6 +83,10 @@ class EngineService {
       }
     }
 
+    if (!model) {
+      model = 'pro';
+    }
+
     this.config = new CoreConfig({
       targetDir: dir,
       approvalMode: ApprovalMode.DEFAULT,
@@ -89,7 +94,7 @@ class EngineService {
       fullContext,
       sessionId,
       cwd: dir,
-      model: DEFAULT_GEMINI_MODEL
+      model: model === 'pro' ? DEFAULT_GEMINI_MODEL : DEFAULT_GEMINI_FLASH_MODEL
     })
 
     this.client = new GeminiClient(this.config);
