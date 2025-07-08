@@ -84,7 +84,7 @@ class EngineService {
     }
 
     if (!model) {
-      model = 'pro';
+      model = 'flash';
     }
 
     this.config = new CoreConfig({
