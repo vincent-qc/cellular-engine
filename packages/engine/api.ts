@@ -8,7 +8,7 @@ export interface StreamEvent {
   timestamp: string;
 }
 
-const stream = async (response: Response, engine: EngineService, prompt: string, setHeaders: boolean = true, context?: string) => {
+const stream = async (response: Response, engine: EngineService, prompt: string, setHeaders?: boolean, context?: string) => {
   if (setHeaders) {
     response.setHeader('Content-Type', 'application/json');
     response.setHeader('Cache-Control', 'no-cache');
