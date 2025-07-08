@@ -16,7 +16,14 @@ const stream = async (response: Response, engine: EngineService, prompt: string,
   }
 
   const sendEvent = (event: StreamEvent) => {
-    response.write(`data: ${JSON.stringify(event)}\n\n`);
+    // For content events, send as regular data
+    if (event.type === 'content') {
+      response.write(`data: ${JSON.stringify(event)}\n\n`);
+    } else {
+      // For other events, send with event type
+      response.write(`event: ${event.type}\n`);
+      response.write(`data: ${JSON.stringify(event)}\n\n`);
+    }
   };
 
   try {
