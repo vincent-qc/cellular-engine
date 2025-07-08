@@ -1,17 +1,18 @@
 import {
-    ApprovalMode,
-    AuthType,
-    ContentGeneratorConfig,
-    Config as CoreConfig,
-    DEFAULT_GEMINI_MODEL,
-    executeToolCall,
-    GeminiClient,
-    GeminiEventType,
-    loadServerHierarchicalMemory,
-    ServerGeminiContentEvent,
-    ServerGeminiToolCallRequestEvent,
-    ToolCallRequestInfo,
-    ToolRegistry,
+  ApprovalMode,
+  AuthType,
+  ContentGeneratorConfig,
+  Config as CoreConfig,
+  createToolRegistry,
+  DEFAULT_GEMINI_MODEL,
+  executeToolCall,
+  GeminiClient,
+  GeminiEventType,
+  loadServerHierarchicalMemory,
+  ServerGeminiContentEvent,
+  ServerGeminiToolCallRequestEvent,
+  ToolCallRequestInfo,
+  ToolRegistry
 } from '@google/gemini-cli-core';
 import { FunctionDeclaration, Part } from '@google/genai';
 import { randomUUID } from 'node:crypto';
@@ -202,7 +203,7 @@ class EngineService {
       };
 
       try {
-        this.toolRegistry = await this.config.getToolRegistry();
+        this.toolRegistry = await createToolRegistry(this.config);
         if (this.debug) {
           console.log('🔧 Tool registry ready');
         }
