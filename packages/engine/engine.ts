@@ -16,6 +16,36 @@ import {
 import { FunctionDeclaration, Part } from '@google/genai';
 import { randomUUID } from 'node:crypto';
 
+// Tool usage data structures
+export interface ToolRequestData {
+  callId: string;
+  name: string;
+  args: Record<string, unknown>;
+}
+
+export interface ToolStartData {
+  callId: string;
+  name: string;
+  args: Record<string, unknown>;
+}
+
+export interface ToolResultData {
+  callId: string;
+  name: string;
+  args: Record<string, unknown>;
+  result: string;
+  duration: number;
+  success: boolean;
+}
+
+export interface ToolErrorData {
+  callId: string;
+  name: string;
+  args: Record<string, unknown>;
+  error: string;
+  duration: number;
+}
+
 
 class EngineService {
   private client: GeminiClient;
@@ -148,6 +178,159 @@ class EngineService {
             } catch (error) {
               console.error(`❌ Tool execution failed:`, error);
               yield `\n\nTool execution failed: ${error}\n\n`;
+              return;
+            }
+          }
+          currentMessages = toolResponseParts;
+        } else {
+          break;
+        }
+      }
+    } catch (error) {
+      console.error('❌ Chat stream failed:', error);
+      throw new Error(`Chat stream failed: ${error}`);
+    }
+  }
+
+  async *streamWithToolEvents(
+    message: string,
+    context?: string,
+  ): AsyncGenerator<{ type: 'content' | 'tool_request' | 'tool_start' | 'tool_result' | 'tool_error'; data: string | ToolRequestData | ToolStartData | ToolResultData | ToolErrorData }, void, unknown> {
+    if (this.debug) {
+      console.log('💬 Starting stream with tool events for message:', message.substring(0, 50) + '...');
+    }
+    
+    await this.ensureInitialized();
+
+    const fullMessage = context ? `${message}\n\nAdditional Context: ${context}` : message;
+
+    const abortController = new AbortController();
+    let currentMessages: Part[] = [{ text: fullMessage }];
+
+    try {
+      while (true) {
+        const stream = this.client.sendMessageStream(
+          currentMessages,
+          abortController.signal,
+        );
+
+        const toolCallRequests: ToolCallRequestInfo[] = [];
+
+        for await (const event of stream) {
+          if (event.type === GeminiEventType.Content) {
+            const contentEvent = event as ServerGeminiContentEvent;
+            const token = contentEvent.value || '';
+            yield { type: 'content', data: token };
+          } else if (event.type === GeminiEventType.ToolCallRequest) {
+            const toolCallEvent = event as ServerGeminiToolCallRequestEvent;
+            toolCallRequests.push(toolCallEvent.value);
+            
+            // Yield tool request event
+            yield {
+              type: 'tool_request',
+              data: {
+                callId: toolCallEvent.value.callId,
+                name: toolCallEvent.value.name,
+                args: toolCallEvent.value.args
+              }
+            };
+            
+            if (this.debug) {
+              console.log(`🕒 Tool call requested: ${toolCallEvent.value.name}`);
+            }
+          }
+        }
+
+        // If there are tool calls, execute them and continue the conversation
+        if (toolCallRequests.length > 0) {
+          const toolResponseParts: Part[] = [];
+
+          for (const toolCallRequest of toolCallRequests) {
+            // Yield tool start event
+            yield {
+              type: 'tool_start',
+              data: {
+                callId: toolCallRequest.callId,
+                name: toolCallRequest.name,
+                args: toolCallRequest.args
+              }
+            };
+
+            const startTime = Date.now();
+            
+            try {
+              const toolResponse = await executeToolCall(
+                this.config,
+                toolCallRequest,
+                this.toolRegistry!,
+                abortController.signal,
+              );
+
+              const duration = Date.now() - startTime;
+
+              if (toolResponse.error) {
+                console.error(
+                  `❌ Error executing tool ${toolCallRequest.name}: ${toolResponse.resultDisplay || toolResponse.error.message}`,
+                );
+                
+                                 // Yield tool error event
+                 yield {
+                   type: 'tool_error',
+                   data: {
+                     callId: toolCallRequest.callId,
+                     name: toolCallRequest.name,
+                     args: toolCallRequest.args,
+                     error: typeof toolResponse.resultDisplay === 'string' ? toolResponse.resultDisplay : toolResponse.error.message,
+                     duration
+                   }
+                 };
+                
+                return;
+              }
+
+                             // Yield tool result event
+               yield {
+                 type: 'tool_result',
+                 data: {
+                   callId: toolCallRequest.callId,
+                   name: toolCallRequest.name,
+                   args: toolCallRequest.args,
+                   result: typeof toolResponse.resultDisplay === 'string' ? toolResponse.resultDisplay : 'Tool executed successfully',
+                   duration,
+                   success: true
+                 }
+               };
+
+              if (toolResponse.responseParts) {
+                const parts = Array.isArray(toolResponse.responseParts)
+                  ? toolResponse.responseParts
+                  : [toolResponse.responseParts];
+                
+                for (const part of parts) {
+                  if (typeof part === 'string') {
+                    toolResponseParts.push({ text: part });
+                  } else if (part) {
+                    toolResponseParts.push(part);
+                  }
+                }
+              }
+
+            } catch (error) {
+              const duration = Date.now() - startTime;
+              console.error(`❌ Tool execution failed:`, error);
+              
+              // Yield tool error event
+              yield {
+                type: 'tool_error',
+                data: {
+                  callId: toolCallRequest.callId,
+                  name: toolCallRequest.name,
+                  args: toolCallRequest.args,
+                  error: error instanceof Error ? error.message : String(error),
+                  duration
+                }
+              };
+              
               return;
             }
           }
