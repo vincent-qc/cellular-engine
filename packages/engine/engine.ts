@@ -202,6 +202,9 @@ class EngineService {
       };
 
       try {
+        // Initialize the config with authentication to ensure tool registry is created
+        await this.config.refreshAuth(AuthType.USE_GEMINI);
+        
         await this.client.initialize(contentGeneratorConfig);
         if (this.debug) {
           console.log('🔧 Gemini client initialized');
