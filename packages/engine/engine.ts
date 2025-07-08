@@ -3,7 +3,6 @@ import {
   AuthType,
   ContentGeneratorConfig,
   Config as CoreConfig,
-  createToolRegistry,
   DEFAULT_GEMINI_MODEL,
   executeToolCall,
   GeminiClient,
@@ -203,15 +202,12 @@ class EngineService {
       };
 
       try {
-        this.toolRegistry = await createToolRegistry(this.config);
-        if (this.debug) {
-          console.log('🔧 Tool registry ready');
-        }
-        
         await this.client.initialize(contentGeneratorConfig);
         if (this.debug) {
           console.log('🔧 Gemini client initialized');
         }
+
+        this.toolRegistry = await this.config.getToolRegistry();
         
         const fileService = await this.config.getFileService();
         const { memoryContent, fileCount } = await loadServerHierarchicalMemory(
