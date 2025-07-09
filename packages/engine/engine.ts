@@ -59,7 +59,7 @@ class EngineService {
   private initialized = false;
   private memoryContent: string = '';
 
-  constructor(dir: string, fullContext: boolean, model?: 'pro' | 'flash', apikey?: string,  sessionId?: string, debug: boolean = false,) {
+  constructor(dir: string, fullContext: boolean, model?: 'pro' | 'flash' | 'mini', apikey?: string,  sessionId?: string, debug: boolean = false,) {
     if (debug) {
       console.log(`⚙️ Configuring EngineService at ${dir}`);
     }
@@ -94,7 +94,7 @@ class EngineService {
       fullContext,
       sessionId,
       cwd: dir,
-      model: model === 'pro' ? DEFAULT_GEMINI_MODEL : DEFAULT_GEMINI_FLASH_MODEL
+      model: model === 'pro' ? DEFAULT_GEMINI_MODEL : (model === 'flash' ? DEFAULT_GEMINI_FLASH_MODEL : "gemini-1.5-flash")
     })
 
     this.client = new GeminiClient(this.config);
@@ -427,6 +427,6 @@ class EngineService {
   }
 }
 
-const createEngine = (dir: string, fullContext: boolean = false, debug: boolean = false, model?: 'pro' | 'flash', apikey?: string, sessionId?: string) => new EngineService(dir, fullContext, model, apikey, sessionId, debug)
+const createEngine = (dir: string, fullContext: boolean = false, debug: boolean = false, model?: 'pro' | 'flash' | 'mini', apikey?: string, sessionId?: string) => new EngineService(dir, fullContext, model, apikey, sessionId, debug)
 
 export { createEngine, EngineService };
