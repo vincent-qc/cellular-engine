@@ -4,7 +4,7 @@ import { EngineService, ToolErrorData, ToolRequestData, ToolResultData, ToolStar
 // Define the streaming event types
 export interface StreamEvent {
   type: 'text' | 'tool_request' | 'tool_start' | 'tool_result' | 'tool_error';
-  data: string | ToolRequestData | ToolStartData | ToolResultData | ToolErrorData;
+  content: string | ToolRequestData | ToolStartData | ToolResultData | ToolErrorData;
   timestamp: string;
 }
 
@@ -23,7 +23,7 @@ const stream = async (response: Response, engine: EngineService, prompt: string,
     for await (const event of engine.streamWithToolEvents(prompt, context)) {
       sendEvent({
         type: event.type,
-        data: event.data,
+        content: event.data,
         timestamp: new Date().toISOString()
       });
     }
@@ -31,7 +31,7 @@ const stream = async (response: Response, engine: EngineService, prompt: string,
     // Send error event
     sendEvent({
       type: 'tool_error',
-      data: {
+      content: {
         callId: 'error',
         name: 'unknown',
         args: {},
