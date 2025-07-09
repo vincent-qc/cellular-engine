@@ -427,6 +427,6 @@ class EngineService {
   }
 }
 
-const createEngine = (dir: string, fullContext: boolean = false, debug: boolean = false, apikey?: string, sessionId?: string) => new EngineService(dir, fullContext, apikey, sessionId, debug)
+const createEngine = (dir: string, fullContext: boolean = false, debug: boolean = false, model?: 'pro' | 'flash', apikey?: string, sessionId?: string) => new EngineService(dir, fullContext, model, apikey, sessionId, debug)
 
 export { createEngine, EngineService };
