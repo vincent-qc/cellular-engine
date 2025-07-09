@@ -200,7 +200,7 @@ class EngineService {
   async *streamWithToolEvents(
     message: string,
     context?: string,
-  ): AsyncGenerator<{ type: 'content' | 'tool_request' | 'tool_start' | 'tool_result' | 'tool_error'; data: string | ToolRequestData | ToolStartData | ToolResultData | ToolErrorData }, void, unknown> {
+  ): AsyncGenerator<{ type: 'text' | 'tool_request' | 'tool_start' | 'tool_result' | 'tool_error'; data: string | ToolRequestData | ToolStartData | ToolResultData | ToolErrorData }, void, unknown> {
     if (this.debug) {
       console.log('💬 Starting stream with tool events for message:', message.substring(0, 50) + '...');
     }
@@ -225,7 +225,7 @@ class EngineService {
           if (event.type === GeminiEventType.Content) {
             const contentEvent = event as ServerGeminiContentEvent;
             const token = contentEvent.value || '';
-            yield { type: 'content', data: token };
+            yield { type: 'text', data: token };
           } else if (event.type === GeminiEventType.ToolCallRequest) {
             const toolCallEvent = event as ServerGeminiToolCallRequestEvent;
             toolCallRequests.push(toolCallEvent.value);
