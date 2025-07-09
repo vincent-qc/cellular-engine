@@ -84,7 +84,7 @@ class EngineService {
     }
 
     if (!model) {
-      model = 'flash';
+      model = 'flash' as const;
     }
 
     this.config = new CoreConfig({
