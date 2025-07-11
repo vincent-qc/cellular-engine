@@ -3,7 +3,7 @@ import { EngineService, ToolErrorData, ToolRequestData, ToolResultData, ToolStar
 
 // Define the streaming event types
 export interface StreamEvent {
-  type: 'content' | 'tool_request' | 'tool_start' | 'tool_result' | 'tool_error';
+  type: 'text' | 'tool_request' | 'tool_start' | 'tool_result' | 'tool_error';
   data: string | ToolRequestData | ToolStartData | ToolResultData | ToolErrorData;
   timestamp: string;
 }
