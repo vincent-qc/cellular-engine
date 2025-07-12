@@ -61,9 +61,10 @@ const engineInstance = engine('./my-project', true, 'session-123', 'your-api-key
 
 app.post('/generate', async (req, res) => {
   const { prompt, context } = req.body;
+  const setHeaders = true;
   
-  // Stream with Server-Sent Events (SSE) format
-  await stream(res, engineInstance, prompt, true, context);
+  // Stream agent response w/ tool calls for given prompt
+  await stream(res, engineInstance, prompt, setHeaders, context);
 });
 
 app.listen(3000, () => {
@@ -71,12 +72,12 @@ app.listen(3000, () => {
 });
 ```
 
-The stream function now supports Server-Sent Events (SSE) format:
-- Content events: `data: {"type":"text","content":"Hello","timestamp":"..."}`
+The stream function returns data in standard SSE format:
+- Content events: `data: {"type": "text", "content": "hello world", "timestamp": "..."}`
 - Tool events: 
   ```
   event: tool_request
-  data: {"type":"tool_request","content":{...},"timestamp":"..."}
+  data: {"type": "tool_request", "content": {...}, "timestamp": "..."}
   ```
 
 ## API Reference
@@ -87,29 +88,29 @@ Creates a new engine instance.
 
 **Parameters:**
 - `dir` (string): Project directory path
-- `fullContext` (boolean, optional): Whether to include full context. Default: `false`
-- `sessionId` (string, optional): Session identifier. Auto-generated if not provided
-- `apikey` (string, optional): Gemini API key. Can also be set via `GEMINI_API_KEY` environment variable
+- `fullContext` (boolean, optional): Whether to dump entire codebase into context window. Default: `false`
+- `sessionId` (string, optional): Session identifier. Auto-generated if not provided.
+- `apikey` (string, optional): Gemini API key. Can also be set via `GEMINI_API_KEY` environment variable.
 - `debug` (boolean, optional): Enable debug logging. Default: `false`
 
 **Returns:** `EngineService` instance
 
 ### `stream(response, engine, prompt, setHeaders?, context?)`
 
-Streams AI responses to an Express.js response object using Server-Sent Events (SSE) format.
+Express Integration to Streams AI responses seamlessly.
 
 **Parameters:**
-- `response` (Response): Express.js response object
-- `engine` (EngineService): Engine instance
-- `prompt` (string): User prompt
-- `setHeaders` (boolean, optional): Whether to set SSE headers automatically. Default: `false`
-- `context` (string, optional): Additional context
+- `response` (Response): Express.js response object.
+- `engine` (EngineService): Engine instance.
+- `prompt` (string): User prompt.
+- `setHeaders` (boolean, optional): Whether to set required SSE headers automatically. Default: `false`
+- `context` (string, optional): Additional context.
 
 ### EngineService Methods
 
 #### `stream(message, context?)`
 
-Streams AI responses as an async generator.
+Streams AI responses as an async generator. Ideal for ask type questions that do not require tool usage.
 
 ```typescript
 for await (const token of engineInstance.stream('Your prompt here')) {
@@ -119,7 +120,7 @@ for await (const token of engineInstance.stream('Your prompt here')) {
 
 #### `streamWithToolEvents(message, context?)`
 
-Streams AI responses with tool execution events as an async generator.
+Streams AI responses with tool execution events as an async generator. Ideal for project-wide agent queries.
 
 ```typescript
 for await (const event of engineInstance.streamWithToolEvents('Your prompt here')) {
