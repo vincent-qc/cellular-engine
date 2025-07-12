@@ -47,6 +47,15 @@ export interface ToolErrorData {
   duration: number;
 }
 
+export type EngineConfig = {
+  dir: string;
+  fullContext?: boolean;
+  model?: 'pro' | 'flash' | 'mini';
+  apikey?: string;
+  sessionId?: string;
+  debug: boolean;
+}
+
 
 class EngineService {
   private client: GeminiClient;
@@ -59,7 +68,9 @@ class EngineService {
   private initialized = false;
   private memoryContent: string = '';
 
-  constructor(dir: string, fullContext: boolean, model?: 'pro' | 'flash' | 'mini', apikey?: string,  sessionId?: string, debug: boolean = false,) {
+  constructor(config: EngineConfig) {
+    const { dir, fullContext, model, apikey, sessionId, debug } = config;
+
     if (debug) {
       console.log(`⚙️ Configuring EngineService at ${dir}`);
     }
@@ -77,14 +88,12 @@ class EngineService {
     }
 
     if (!sessionId || !sessionId.trim()) {
-      sessionId = randomUUID().toString();
+      this.sessionId = randomUUID().toString();
       if (debug) {
         console.log(`⚙️ No session ID provided, generating new one: ${sessionId}`);
       }
-    }
-
-    if (!model) {
-      model = 'flash' as const;
+    } else {
+      this.sessionId = sessionId;
     }
 
     this.config = new CoreConfig({
@@ -92,13 +101,13 @@ class EngineService {
       approvalMode: ApprovalMode.DEFAULT,
       debugMode: debug,
       fullContext,
-      sessionId,
+      sessionId: this.sessionId,
       cwd: dir,
-      model: model === 'pro' ? DEFAULT_GEMINI_MODEL : (model === 'flash' ? DEFAULT_GEMINI_FLASH_MODEL : "gemini-1.5-flash")
+      model: model === 'pro' ? DEFAULT_GEMINI_MODEL : (model === 'mini' ? "gemini-1.5-flash" : DEFAULT_GEMINI_FLASH_MODEL)
     })
 
     this.client = new GeminiClient(this.config);
-    this.sessionId = sessionId;
+
     this.debug = debug;
 
     if (debug) {
@@ -427,6 +436,6 @@ class EngineService {
   }
 }
 
-const createEngine = (dir: string, fullContext: boolean = false, debug: boolean = false, model?: 'pro' | 'flash' | 'mini', apikey?: string, sessionId?: string) => new EngineService(dir, fullContext, model, apikey, sessionId, debug)
+const createEngine = (config: EngineConfig) => new EngineService(config)
 
 export { createEngine, EngineService };
