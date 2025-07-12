@@ -1,6 +1,7 @@
 <div align='center'>
   <h1>@cellular-ai/engine</h1>
-  <p>API for building agentic coding editors/platforms</p>
+  <p>API for building agentic coding editors/platforms |
+   <a href="https://www.npmjs.com/package/@cellular-ai/engine">NPM</p></p>
 </div>
 
 <br>
@@ -10,9 +11,9 @@
 	    src="https://img.shields.io/github/license/vincent-qc/cellular-engine?style=for-the-badge"
 	    alt="License"
 	/>
-	<img
-		src='https://img.shields.io/github/languages/top/vincent-qc/cellular-engine.svg?style=for-the-badge'
-		alt='Language'
+  <img
+		src='https://img.shields.io/npm/d18m/%40cellular-ai%2Fengine?style=for-the-badge'
+		alt='NPM Downloads'
 	/>
 </div>
 
