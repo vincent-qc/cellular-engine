@@ -14,10 +14,6 @@
 		src='https://img.shields.io/github/languages/top/vincent-qc/cellular-engine.svg?style=for-the-badge'
 		alt='Language'
 	/>
-  <img
-		src='https://img.shields.io/badge/version-1.18.2-red?style=for-the-badge'
-		alt='MC Version'
-	/>
 </div>
 
 ## Features
