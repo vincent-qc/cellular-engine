@@ -62,17 +62,22 @@ const engineInstance = engine('./my-project', true, 'session-123', 'your-api-key
 app.post('/generate', async (req, res) => {
   const { prompt, context } = req.body;
   
-  res.setHeader('Content-Type', 'text/plain');
-  res.setHeader('Transfer-Encoding', 'chunked');
-  
-  await stream(res, engineInstance, prompt, context);
-  return res;
+  // Stream with Server-Sent Events (SSE) format
+  await stream(res, engineInstance, prompt, true, context);
 });
 
 app.listen(3000, () => {
   console.log('Server running on port 3000');
 });
 ```
+
+The stream function now supports Server-Sent Events (SSE) format:
+- Content events: `data: {"type":"text","content":"Hello","timestamp":"..."}`
+- Tool events: 
+  ```
+  event: tool_request
+  data: {"type":"tool_request","content":{...},"timestamp":"..."}
+  ```
 
 ## API Reference
 
@@ -89,14 +94,15 @@ Creates a new engine instance.
 
 **Returns:** `EngineService` instance
 
-### `stream(response, engine, prompt, context?)`
+### `stream(response, engine, prompt, setHeaders?, context?)`
 
-Streams AI responses to an Express.js response object.
+Streams AI responses to an Express.js response object using Server-Sent Events (SSE) format.
 
 **Parameters:**
 - `response` (Response): Express.js response object
 - `engine` (EngineService): Engine instance
 - `prompt` (string): User prompt
+- `setHeaders` (boolean, optional): Whether to set SSE headers automatically. Default: `false`
 - `context` (string, optional): Additional context
 
 ### EngineService Methods
@@ -108,6 +114,20 @@ Streams AI responses as an async generator.
 ```typescript
 for await (const token of engineInstance.stream('Your prompt here')) {
   console.log(token);
+}
+```
+
+#### `streamWithToolEvents(message, context?)`
+
+Streams AI responses with tool execution events as an async generator.
+
+```typescript
+for await (const event of engineInstance.streamWithToolEvents('Your prompt here')) {
+  if (event.type === 'text') {
+    console.log(event.data);
+  } else if (event.type === 'tool_request') {
+    console.log('Tool requested:', event.data);
+  }
 }
 ```
 
@@ -157,6 +177,36 @@ for await (const token of engineInstance.stream(
   'Create a React component that displays a user profile'
 )) {
   process.stdout.write(token);
+}
+```
+
+### Streaming with Tool Events
+
+```typescript
+import { engine } from '@cellular-ai/engine';
+
+const engineInstance = engine('./my-project', true, 'code-gen-session');
+
+for await (const event of engineInstance.streamWithToolEvents(
+  'Create a React component that displays a user profile'
+)) {
+  switch (event.type) {
+    case 'text':
+      process.stdout.write(event.data);
+      break;
+    case 'tool_request':
+      console.log('🛠️ Tool requested:', event.data.name);
+      break;
+    case 'tool_start':
+      console.log('🚀 Tool started:', event.data.name);
+      break;
+    case 'tool_result':
+      console.log('✅ Tool completed:', event.data.name);
+      break;
+    case 'tool_error':
+      console.log('❌ Tool failed:', event.data.name);
+      break;
+  }
 }
 ```
 
