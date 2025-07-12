@@ -39,7 +39,13 @@ npm install @cellular-ai/engine
 import { engine, stream } from '@cellular-ai/engine';
 
 // Create an engine instance
-const engineInstance = engine('./my-project', true, 'session-123', 'your-api-key');
+const engineInstance = engine({
+  dir: './my-project',
+  fullContext: true,
+  sessionId: 'session-123',
+  apikey: 'your-api-key',
+  debug: false
+});
 
 // Stream AI responses
 for await (const token of engineInstance.stream('Write a function to sort an array')) {
@@ -54,7 +60,13 @@ import express from 'express';
 import { stream } from '@cellular-ai/engine';
 
 const app = express();
-const engineInstance = engine('./my-project', true, 'session-123', 'your-api-key');
+const engineInstance = engine({
+  dir: './my-project',
+  fullContext: true,
+  sessionId: 'session-123',
+  apikey: 'your-api-key',
+  debug: false
+});
 
 app.post('/generate', async (req, res) => {
   const { prompt, context } = req.body;
@@ -79,16 +91,18 @@ The stream function returns data in standard SSE format:
 
 ## API Reference
 
-### `engine(dir, fullContext?, sessionId?, apikey?, debug?)`
+### `engine(config)`
 
 Creates a new engine instance.
 
 **Parameters:**
-- `dir` (string): Project directory path
-- `fullContext` (boolean, optional): Whether to dump entire codebase into context window. Default: `false`
-- `sessionId` (string, optional): Session identifier. Auto-generated if not provided.
-- `apikey` (string, optional): Gemini API key. Can also be set via `GEMINI_API_KEY` environment variable.
-- `debug` (boolean, optional): Enable debug logging. Default: `false`
+- `config` (EngineConfig): Configuration object with the following properties:
+  - `dir` (string): Project directory path
+  - `fullContext` (boolean, optional): Whether to dump entire codebase into context window. Default: `false`
+  - `model` (string, optional): Model to use. Options: `'pro'`, `'flash'`, `'mini'`. Default: `'flash'`
+  - `apikey` (string, optional): Gemini API key. Can also be set via `GEMINI_API_KEY` environment variable.
+  - `sessionId` (string, optional): Session identifier. Auto-generated if not provided.
+  - `debug` (boolean): Enable debug logging
 
 **Returns:** `EngineService` instance
 
@@ -169,7 +183,12 @@ console.log('Memory content:', memory);
 ```typescript
 import { engine } from '@cellular-ai/engine';
 
-const engineInstance = engine('./my-project', true, 'code-gen-session');
+const engineInstance = engine({
+  dir: './my-project',
+  fullContext: true,
+  sessionId: 'code-gen-session',
+  debug: false
+});
 
 for await (const token of engineInstance.stream(
   'Create a React component that displays a user profile'
@@ -183,7 +202,12 @@ for await (const token of engineInstance.stream(
 ```typescript
 import { engine } from '@cellular-ai/engine';
 
-const engineInstance = engine('./my-project', true, 'code-gen-session');
+const engineInstance = engine({
+  dir: './my-project',
+  fullContext: true,
+  sessionId: 'code-gen-session',
+  debug: false
+});
 
 for await (const event of engineInstance.streamWithToolEvents(
   'Create a React component that displays a user profile'
@@ -213,7 +237,10 @@ for await (const event of engineInstance.streamWithToolEvents(
 ```typescript
 import { engine } from '@cellular-ai/engine';
 
-const engineInstance = engine('./my-project');
+const engineInstance = engine({
+  dir: './my-project',
+  debug: false
+});
 
 // Get available tools
 const tools = await engineInstance.getTools();
