@@ -40,7 +40,7 @@ import { engine, stream } from '@cellular-ai/engine';
 
 // Create an engine instance
 const engineInstance = engine({
-  dir: './my-project',
+  dir: '/path/to/project',
   fullContext: true,
   sessionId: 'session-123',
   apikey: 'your-api-key',
@@ -60,17 +60,19 @@ import express from 'express';
 import { stream } from '@cellular-ai/engine';
 
 const app = express();
-const engineInstance = engine({
-  dir: './my-project',
-  fullContext: true,
-  sessionId: 'session-123',
-  apikey: 'your-api-key',
-  debug: false
-});
 
 app.post('/generate', async (req, res) => {
-  const { prompt, context } = req.body;
+  const { prompt, dir, context } = req.body;
   const setHeaders = true;
+
+  // Create engine for specific request
+  const engineInstance = engine({
+    dir: dir,
+    fullContext: true,
+    sessionId: 'session-123',
+    apikey: 'your-api-key',
+    debug: false
+  });
   
   // Stream agent response w/ tool calls for given prompt
   await stream(res, engineInstance, prompt, setHeaders, context);
