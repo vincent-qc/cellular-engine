@@ -13,7 +13,34 @@ RUN npm install
 COPY packages/ ./packages/
 
 # Create a simple build script for the server using esbuild
-RUN npx esbuild packages/engine/server/server.ts --bundle --outfile=server.js --platform=node --format=esm --external:express --external:get-port
+RUN npx esbuild packages/engine/server/server.ts --bundle --outfile=server.js --platform=node --format=esm \
+    --external:express \
+    --external:get-port \
+    --external:@google/genai \
+    --external:diff \
+    --external:gaxios \
+    --external:undici \
+    --external:google-auth-library \
+    --external:open \
+    --external:@opentelemetry/api-logs \
+    --external:@opentelemetry/semantic-conventions \
+    --external:simple-git \
+    --external:@opentelemetry/api \
+    --external:@opentelemetry/exporter-trace-otlp-grpc \
+    --external:@opentelemetry/exporter-logs-otlp-grpc \
+    --external:@opentelemetry/exporter-metrics-otlp-grpc \
+    --external:@opentelemetry/otlp-exporter-base \
+    --external:@opentelemetry/sdk-node \
+    --external:@opentelemetry/resources \
+    --external:@opentelemetry/sdk-trace-node \
+    --external:@opentelemetry/sdk-logs \
+    --external:@opentelemetry/sdk-metrics \
+    --external:@opentelemetry/instrumentation-http \
+    --external:html-to-text \
+    --external:@modelcontextprotocol/sdk/client/index.js \
+    --external:@modelcontextprotocol/sdk/client/stdio.js \
+    --external:@modelcontextprotocol/sdk/client/sse.js \
+    --external:@modelcontextprotocol/sdk/client/streamableHttp.js
 
 # Expose the port
 EXPOSE 5000

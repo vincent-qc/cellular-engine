@@ -15,8 +15,8 @@ class DockerEngineService {
   async init() {
     this.port = await getPort({ port: 5000 });
     
-    // Build the Docker image first
-    await this.buildImage();
+    // Check if the pre-built image exists
+    await this.ensureImageExists();
     
     const dockerArgs = [
       'run',
@@ -52,28 +52,34 @@ class DockerEngineService {
     });
   }
 
-  private async buildImage(): Promise<void> {
+  private async ensureImageExists(): Promise<void> {
     return new Promise((resolve, reject) => {
-      const buildProcess = spawn('docker', [
-        'build', 
-        '-t', 'gemini-engine-server',
-        '-f', 'packages/engine/Dockerfile',
-        '.'
-      ], {
-        cwd: process.cwd(),
+      // Check if the image exists
+      const checkProcess = spawn('docker', ['images', '-q', 'gemini-engine-server'], {
         stdio: 'pipe'
       });
 
-      buildProcess.on('close', (code: number | null) => {
-        if (code === 0) {
-          console.log('Docker image built successfully');
-          resolve();
-        } else {
-          reject(new Error(`Docker build failed with code: ${code}`));
+      let imageExists = false;
+      checkProcess.stdout?.on('data', (data) => {
+        if (data.toString().trim()) {
+          imageExists = true;
         }
       });
 
-      buildProcess.on('error', (error) => {
+      checkProcess.on('close', (code) => {
+        if (code === 0) {
+          if (imageExists) {
+            console.log('Using existing gemini-engine-server image');
+            resolve();
+          } else {
+            reject(new Error('Docker image "gemini-engine-server" not found. Please build it first with: npm run docker:build'));
+          }
+        } else {
+          reject(new Error('Failed to check for Docker image'));
+        }
+      });
+
+      checkProcess.on('error', (error) => {
         reject(error);
       });
     });
