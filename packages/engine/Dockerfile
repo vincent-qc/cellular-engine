@@ -42,10 +42,10 @@ RUN npx esbuild packages/engine/server/server.ts --bundle --outfile=server.js --
     --external:@modelcontextprotocol/sdk/client/sse.js \
     --external:@modelcontextprotocol/sdk/client/streamableHttp.js
 
-# Expose the port
+# Expose the port (container always uses 5000 internally)
 EXPOSE 5000
 
-# Set default port if not provided
+# Set default port for the container (can be overridden at runtime)
 ENV PORT=5000
 
 # Start the server
