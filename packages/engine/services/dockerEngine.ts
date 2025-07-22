@@ -39,8 +39,10 @@ class DockerEngineService {
       this.dockerProcess.on('close', (code: number | null) => {
         if (code === 0) {
           console.log(`Docker container started with ID: ${containerId.trim()}`);
-          // Wait a moment for the server to start
-          setTimeout(() => resolve(containerId.trim()), 2000);
+          // Wait for server to be ready with health check
+          this.healthCheck()
+            .then(() => resolve(containerId.trim()))
+            .catch(reject);
         } else {
           reject(new Error(`Docker container failed to start with code: ${code}`));
         }
@@ -51,40 +53,6 @@ class DockerEngineService {
       });
     });
   }
-
-  private async ensureImageExists(): Promise<void> {
-    return new Promise((resolve, reject) => {
-      // Check if the image exists
-      const checkProcess = spawn('docker', ['images', '-q', 'gemini-engine-server'], {
-        stdio: 'pipe'
-      });
-
-      let imageExists = false;
-      checkProcess.stdout?.on('data', (data) => {
-        if (data.toString().trim()) {
-          imageExists = true;
-        }
-      });
-
-      checkProcess.on('close', (code) => {
-        if (code === 0) {
-          if (imageExists) {
-            console.log('Using existing gemini-engine-server image');
-            resolve();
-          } else {
-            reject(new Error('Docker image "gemini-engine-server" not found. Please build it first with: npm run docker:build'));
-          }
-        } else {
-          reject(new Error('Failed to check for Docker image'));
-        }
-      });
-
-      checkProcess.on('error', (error) => {
-        reject(error);
-      });
-    });
-  }
-
   async create() {
     try {
       const response = await fetch(`http://localhost:${this.port}/docker/create`, {
@@ -144,6 +112,64 @@ class DockerEngineService {
   async kill() {
     this.dockerProcess?.kill();
   }
+
+
+  private async healthCheck(maxRetries: number = 30, retryInterval: number = 1000): Promise<void> {
+    for (let i = 0; i < maxRetries; i++) {
+      try {
+        // Try to make a simple connection to the server
+        const res = await fetch(`http://localhost:${this.port}/docker/health`, {
+          method: 'GET',
+          signal: AbortSignal.timeout(10000) // 5 second timeout per request
+        });
+
+        console.log(res);
+        
+        console.log('Server is ready!');
+        return;
+      } catch (error) {
+        if (i === maxRetries - 1) {
+          throw new Error(`Server failed to become ready after ${maxRetries} attempts: ${error}`);
+        }
+        console.log(`Waiting for server... (attempt ${i + 1}/${maxRetries})`);
+        await new Promise(resolve => setTimeout(resolve, retryInterval));
+      }
+    }
+  }
+
+  private async ensureImageExists(): Promise<void> {
+    return new Promise((resolve, reject) => {
+      // Check if the image exists
+      const checkProcess = spawn('docker', ['images', '-q', 'gemini-engine-server'], {
+        stdio: 'pipe'
+      });
+
+      let imageExists = false;
+      checkProcess.stdout?.on('data', (data) => {
+        if (data.toString().trim()) {
+          imageExists = true;
+        }
+      });
+
+      checkProcess.on('close', (code) => {
+        if (code === 0) {
+          if (imageExists) {
+            console.log('Using existing gemini-engine-server image');
+            resolve();
+          } else {
+            reject(new Error('Docker image "gemini-engine-server" not found. Please build it first with: npm run docker:build'));
+          }
+        } else {
+          reject(new Error('Failed to check for Docker image'));
+        }
+      });
+
+      checkProcess.on('error', (error) => {
+        reject(error);
+      });
+    });
+  }
+
 }
 
 const dockerEngine = (config: EngineConfig) => new DockerEngineService(config);

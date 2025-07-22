@@ -5,9 +5,13 @@ WORKDIR /app
 
 # Copy package files first for better layer caching
 COPY package.json ./
+COPY packages/core/package.json ./packages/core/
 
 # Install dependencies including build tools
 RUN npm install
+
+# Install core package dependencies
+RUN cd packages/core && npm install
 
 # Copy source code
 COPY packages/ ./packages/
@@ -40,7 +44,15 @@ RUN npx esbuild packages/engine/server/server.ts --bundle --outfile=server.js --
     --external:@modelcontextprotocol/sdk/client/index.js \
     --external:@modelcontextprotocol/sdk/client/stdio.js \
     --external:@modelcontextprotocol/sdk/client/sse.js \
-    --external:@modelcontextprotocol/sdk/client/streamableHttp.js
+    --external:@modelcontextprotocol/sdk/client/streamableHttp.js \
+    --external:mime-types \
+    --external:path \
+    --external:fs \
+    --external:os \
+    --external:util \
+    --external:crypto \
+    --external:stream \
+    --external:buffer
 
 # Expose the port (container always uses 5000 internally)
 EXPOSE 5000

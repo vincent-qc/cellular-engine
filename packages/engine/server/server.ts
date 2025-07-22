@@ -19,4 +19,9 @@ app.post('/docker/stream', (req, res) => {
   stream(res, engine, req.body.prompt, true, req.body.context);
 });
 
+app.get('/docker/health', (req, res) => {
+  console.log("Health check complete");
+  res.status(200).json({ status: 'healthy' });
+})
+
 app.listen(port, () => console.log(`Server running on port ${port}`)); 
