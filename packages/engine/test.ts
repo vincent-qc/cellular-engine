@@ -16,6 +16,7 @@ const test = async () => {
   console.log("Engine initialized");
   await engine.create();
   console.log("Container created");
+  await engine.test();
 }
 
 test();

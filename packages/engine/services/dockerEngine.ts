@@ -80,24 +80,26 @@ class DockerEngineService {
     }
 
     try {
-      const streamResponse = await fetch(`http://localhost:${this.port}/docker/stream`, {
+      const stream = await fetch(`http://localhost:${this.port}/docker/stream`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ prompt })
       });
 
-      if (!streamResponse.ok) {
-        throw new Error(`Stream request failed: ${streamResponse.status} ${streamResponse.statusText}`);
+      if (!stream.ok) {
+        throw new Error(`Stream request failed: ${stream.status} ${stream.statusText}`);
       }
 
-      const reader = streamResponse.body?.getReader();
+      const reader = stream.body?.getReader();
+      const decoder = new TextDecoder();
       if (!reader) throw new Error('No response body');
 
       try {
         while (true) {
           const { done, value } = await reader.read();
           if (done) break;
-          response.write(value);
+          const decoded = decoder.decode(value);
+          response.write(decoded);
         }
       } finally {
         reader.releaseLock();
@@ -169,7 +171,6 @@ class DockerEngineService {
       });
     });
   }
-
 }
 
 const dockerEngine = (config: EngineConfig) => new DockerEngineService(config);
