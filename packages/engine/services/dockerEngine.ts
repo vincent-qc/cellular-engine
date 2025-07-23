@@ -99,6 +99,7 @@ class DockerEngineService {
           const { done, value } = await reader.read();
           if (done) break;
           const decoded = decoder.decode(value);
+          console.log("D, ", decoded)
           response.write(decoded);
         }
       } finally {
