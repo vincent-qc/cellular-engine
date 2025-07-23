@@ -57,10 +57,9 @@ class DockerEngineService {
 
   async create() {
     try {
-      // Create a new config object with the container path instead of mutating the original
       const containerConfig = {
         ...this.config,
-        dir: '/project'  // Use the mounted path inside container
+        dir: '/project'
       };
       
       const response = await fetch(`http://localhost:${this.port}/docker/create`, {
@@ -105,7 +104,6 @@ class DockerEngineService {
         while (true) {
           const { done, value } = await reader.read();
           if (done) break;
-          console.log("D, ", value)
           response.write(value);
         }
       } finally {
@@ -126,21 +124,17 @@ class DockerEngineService {
   private async healthCheck(maxRetries: number = 30, retryInterval: number = 1000): Promise<void> {
     for (let i = 0; i < maxRetries; i++) {
       try {
-        // Try to make a simple connection to the server
-        const res = await fetch(`http://localhost:${this.port}/docker/health`, {
+        await fetch(`http://localhost:${this.port}/docker/health`, {
           method: 'GET',
           signal: AbortSignal.timeout(10000) // 5 second timeout per request
         });
-
-        console.log(res);
-        
-        console.log('Server is ready!');
+        if (this.config.debug) console.log('Server is ready!');
         return;
       } catch (error) {
         if (i === maxRetries - 1) {
           throw new Error(`Server failed to become ready after ${maxRetries} attempts: ${error}`);
         }
-        console.log(`Waiting for server... (attempt ${i + 1}/${maxRetries})`);
+        if (this.config.debug) console.warn(`Waiting for server... (attempt ${i + 1}/${maxRetries})`);
         await new Promise(resolve => setTimeout(resolve, retryInterval));
       }
     }
@@ -148,7 +142,6 @@ class DockerEngineService {
 
   private async ensureImageExists(): Promise<void> {
     return new Promise((resolve, reject) => {
-      // Check if the image exists
       const checkProcess = spawn('docker', ['images', '-q', 'gemini-engine-server'], {
         stdio: 'pipe'
       });
@@ -163,7 +156,6 @@ class DockerEngineService {
       checkProcess.on('close', (code) => {
         if (code === 0) {
           if (imageExists) {
-            console.log('Using existing gemini-engine-server image');
             resolve();
           } else {
             reject(new Error('Docker image "gemini-engine-server" not found. Please build it first with: npm run docker:build'));

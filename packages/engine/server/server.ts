@@ -20,7 +20,6 @@ app.post('/docker/stream', (req, res) => {
 });
 
 app.get('/docker/health', (req, res) => {
-  console.log("Health check complete");
   res.status(200).json({ status: 'healthy' });
 })
 
