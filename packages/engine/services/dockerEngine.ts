@@ -57,6 +57,7 @@ class DockerEngineService {
 
   async create() {
     try {
+      this.config.dir = "/project";
       const response = await fetch(`http://localhost:${this.port}/docker/create`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
