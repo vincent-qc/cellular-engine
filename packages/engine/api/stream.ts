@@ -10,7 +10,7 @@ export interface StreamEvent {
 
 const stream = async (response: Response, engine: EngineService, prompt: string, setHeaders?: boolean, context?: string) => {
   if (setHeaders) {
-    response.setHeader('Content-Type', 'application/json');
+    response.setHeader('Content-Type', 'text/event-stream');
     response.setHeader('Cache-Control', 'no-cache');
     response.setHeader('Connection', 'keep-alive');
   }
