@@ -91,16 +91,14 @@ class DockerEngineService {
       }
 
       const reader = stream.body?.getReader();
-      const decoder = new TextDecoder();
       if (!reader) throw new Error('No response body');
 
       try {
         while (true) {
           const { done, value } = await reader.read();
           if (done) break;
-          const decoded = decoder.decode(value);
-          console.log("D, ", decoded)
-          response.write(decoded);
+          console.log("D, ", value)
+          response.write(value);
         }
       } finally {
         reader.releaseLock();
