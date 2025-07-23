@@ -57,11 +57,16 @@ class DockerEngineService {
 
   async create() {
     try {
-      this.config.dir = "/project";
+      // Create a new config object with the container path instead of mutating the original
+      const containerConfig = {
+        ...this.config,
+        dir: '/project'  // Use the mounted path inside container
+      };
+      
       const response = await fetch(`http://localhost:${this.port}/docker/create`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(this.config)
+        body: JSON.stringify(containerConfig)
       });
 
       if (!response.ok) {
