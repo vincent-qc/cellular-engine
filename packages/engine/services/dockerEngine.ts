@@ -22,8 +22,7 @@ class DockerEngineService {
       'run',
       '-d',
       '-p', `${this.port}:5000`,
-      '-v', `${this.config.dir}:/workspace`,
-      '-w', '/workspace',   
+      '-v', `${this.config.dir}:/project`,
       '-e', `PORT=5000`,
       '-e', `GEMINI_API_KEY=${process.env.GEMINI_API_KEY}`,
       'gemini-engine-server'
@@ -55,6 +54,7 @@ class DockerEngineService {
       });
     });
   }
+
   async create() {
     try {
       const response = await fetch(`http://localhost:${this.port}/docker/create`, {
@@ -62,11 +62,11 @@ class DockerEngineService {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(this.config)
       });
-      
+
       if (!response.ok) {
         throw new Error(`Create request failed: ${response.status} ${response.statusText}`);
       }
-      
+
       console.log('Engine created successfully');
     } catch (error) {
       console.error('Failed to create engine:', error);
