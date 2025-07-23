@@ -22,6 +22,8 @@ class DockerEngineService {
       'run',
       '-d',
       '-p', `${this.port}:5000`,
+      '-v', `${this.config.dir}:/workspace`,
+      '-w', '/workspace',   
       '-e', `PORT=5000`,
       '-e', `GEMINI_API_KEY=${process.env.GEMINI_API_KEY}`,
       'gemini-engine-server'
