@@ -1,6 +1,7 @@
 import { ChildProcess, spawn } from "child_process";
 import { Response } from 'express';
 import getPort from "get-port";
+import { Socket } from "socket.io";
 import { EngineConfig } from "./engine.js";
 
 class DockerEngineService {
@@ -79,7 +80,7 @@ class DockerEngineService {
     }
   }
 
-  async stream(response: Response, prompt: string, setHeaders?: boolean) {
+  async streamSSE(response: Response, prompt: string, setHeaders?: boolean) {
     if (setHeaders) {
       response.setHeader('Content-Type', 'text/event-stream');
       response.setHeader('Cache-Control', 'no-cache');
@@ -113,6 +114,49 @@ class DockerEngineService {
     } catch (error) {
       console.error('Stream error:', error);
       response.status(500).json({ error: 'Stream failed' });
+    }
+  }
+
+  async streamSocket(socket: Socket, prompt: string, room?: string) {
+    try {
+      const stream = await fetch(`http://localhost:${this.port}/docker/stream`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ prompt })
+      });
+
+      if (!stream.ok) {
+        throw new Error(`Stream request failed: ${stream.status} ${stream.statusText}`);
+      }
+
+      const reader = stream.body?.getReader();
+      if (!reader) throw new Error("Reader not found");
+
+      try {
+        while (true) {
+          const { done, value } = await reader.read();
+          if (done) break;
+          if (room) {
+            socket.to(room).emit('stream-data', value);
+          } else {
+            socket.emit('stream-data', value);
+          }
+        }
+      } finally {
+        if (room) {
+          socket.to(room).emit('stream-end');
+        } else {
+          socket.emit('stream-end');
+        }
+        reader.releaseLock();
+      }
+    } catch (error) {
+      console.error('Stream error:', error);
+      if (room) {
+        socket.to(room).emit('stream-error', { error });
+      } else {
+        socket.emit('stream-error', { error });
+      }
     }
   }
 

@@ -1,7 +1,6 @@
 import { Response } from 'express';
 import { EngineService, ToolErrorData, ToolRequestData, ToolResultData, ToolStartData } from "../services/engine.js";
 
-// Define the streaming event types
 export interface StreamEvent {
   type: 'text' | 'tool_request' | 'tool_start' | 'tool_result' | 'tool_error';
   content: string | ToolRequestData | ToolStartData | ToolResultData | ToolErrorData;
