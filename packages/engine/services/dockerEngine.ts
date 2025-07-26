@@ -14,7 +14,7 @@ class DockerEngineService {
     this.config = config;
   }
 
-  async init() {
+  async init(memory: string = '256m', cpus: string = '1') {
     this.port = await getPort({ port: 5000 });
     
     // Check if the pre-built image exists
@@ -27,6 +27,8 @@ class DockerEngineService {
       '-v', `${this.config.dir}:/project`,
       '-e', `PORT=5000`,
       '-e', `GEMINI_API_KEY=${process.env.GEMINI_API_KEY}`,
+      '--memory', memory,
+      '--cpus', cpus,
       'gemini-engine-server'
     ];
 
