@@ -138,7 +138,7 @@ class DockerEngineService {
       try {
         while (true) {
           const { done, value } = await reader.read();
-          console.log("SHOULD SEND: ", value);
+          console.log(`SHOULD SEND to ${room}: `, value);
           if (done) break;
           if (room) {
             socket.to(room).emit('stream-data', value);
