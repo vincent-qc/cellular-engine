@@ -6,8 +6,9 @@ import { EngineConfig } from "./engine.js";
 
 class DockerEngineService {
   private port: number = 0;
-  private dockerProcess: ChildProcess | null= null;
   private config: EngineConfig;
+  private dockerProcess: ChildProcess | null= null;
+  private containerId: string = "";
 
   constructor(config: EngineConfig) {
     this.config = config;
@@ -41,9 +42,9 @@ class DockerEngineService {
       this.dockerProcess.on('close', (code: number | null) => {
         if (code === 0) {
           console.log(`Docker container started with ID: ${containerId.trim()}`);
-          // Wait for server to be ready with health check
+          this.containerId = containerId.trim();
           this.healthCheck()
-            .then(() => resolve(containerId.trim()))
+            .then(() => resolve(this.containerId))
             .catch(reject);
         } else {
           reject(new Error(`Docker container failed to start with code: ${code}`));
@@ -161,6 +162,16 @@ class DockerEngineService {
   }
 
   async kill() {
+    if (this.containerId) {
+      const stopProcess = spawn('docker', ['stop', this.containerId]);
+      stopProcess.on('close', (code) => {
+        if (code !== 0) {
+          console.warn(`Failed to stop Docker container ${this.containerId}`);
+        } else {
+          if (this.config.debug) console.log(`Docker Container with id ${this.containerId} stopped.`);
+        }
+      })
+    }
     this.dockerProcess?.kill();
   }
 
