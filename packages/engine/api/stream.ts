@@ -2,7 +2,7 @@ import { Response } from 'express';
 import { EngineService, ToolErrorData, ToolRequestData, ToolResultData, ToolStartData } from "../services/engine.js";
 
 export interface StreamEvent {
-  type: 'text' | 'tool_request' | 'tool_start' | 'tool_result' | 'tool_error';
+  type: 'text' | 'tool_request' | 'tool_start' | 'tool_result' | 'tool_error' | 'chat_compressed';
   content: string | ToolRequestData | ToolStartData | ToolResultData | ToolErrorData;
   timestamp: string;
 }
@@ -22,7 +22,7 @@ const stream = async (response: Response, engine: EngineService, prompt: string,
     for await (const event of engine.streamWithToolEvents(prompt, context)) {
       sendEvent({
         type: event.type,
-        content: event.data,
+        content: event.data as string | ToolRequestData | ToolStartData | ToolResultData | ToolErrorData,
         timestamp: new Date().toISOString()
       });
     }
