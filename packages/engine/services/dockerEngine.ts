@@ -118,7 +118,7 @@ class DockerEngineService {
     }
   }
 
-  async streamSocket(socket: Socket, prompt: string, room?: string) {
+  async streamSocket(socket: Socket, prompt: string) {
     try {
       const stream = await fetch(`http://localhost:${this.port}/docker/stream`, {
         method: 'POST',
@@ -138,29 +138,17 @@ class DockerEngineService {
       try {
         while (true) {
           const { done, value } = await reader.read();
-          console.log(`SHOULD SEND to ${room}: `, value);
+          console.log(`SHOULD SEND: `, value);
           if (done) break;
-          if (room) {
-            socket.to(room).emit('stream-data', value);
-          } else {
-            socket.emit('stream-data', value);
-          }
+          socket.emit('stream-data', value);
         }
       } finally {
-        if (room) {
-          socket.to(room).emit('stream-end');
-        } else {
-          socket.emit('stream-end');
-        }
+        socket.emit('stream-end');
         reader.releaseLock();
       }
     } catch (error) {
       console.error('Stream error:', error);
-      if (room) {
-        socket.to(room).emit('stream-error', { error });
-      } else {
-        socket.emit('stream-error', { error });
-      }
+      socket.emit('stream-error', { error });
     }
   }
 
