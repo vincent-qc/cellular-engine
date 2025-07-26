@@ -131,13 +131,15 @@ class DockerEngineService {
       }
 
       const reader = stream.body?.getReader();
+      const decoder = new TextDecoder();
       if (!reader) throw new Error("Reader not found");
 
       try {
         while (true) {
           const { done, value } = await reader.read();
           if (done) break;
-          socket.emit('stream-data', value);
+          const decoded = decoder.decode(value, { stream: true });
+          socket.emit('stream-data', decoded);
         }
       } finally {
         socket.emit('stream-end');
