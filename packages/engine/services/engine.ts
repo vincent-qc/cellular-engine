@@ -6,10 +6,7 @@ import {
   DEFAULT_GEMINI_FLASH_MODEL,
   DEFAULT_GEMINI_MODEL,
   GeminiClient,
-  GeminiEventType,
   loadServerHierarchicalMemory,
-  ServerGeminiContentEvent,
-  ServerGeminiToolCallRequestEvent,
   ToolRegistry
 } from '@google/gemini-cli-core';
 import { Content, FunctionDeclaration } from '@google/genai';
@@ -143,25 +140,18 @@ class EngineService {
     const abortController = new AbortController();
     
     try {
-      const stream = this.client.sendMessageStream(
-        [{ text: fullMessage }],
-        abortController.signal,
-      );
+      const chat = this.client.getChat();
+      const stream = await chat.sendMessageStream({
+        message: { text: fullMessage },
+        config: {
+          abortSignal: abortController.signal,
+        },
+      });
 
-      for await (const event of stream) {
-        if (event.type === GeminiEventType.Content) {
-          const contentEvent = event as ServerGeminiContentEvent;
-          const token = contentEvent.value || '';
-          yield token;
-        } else if (event.type === GeminiEventType.ToolCallRequest) {
-          const toolCallEvent = event as ServerGeminiToolCallRequestEvent;
-          if (this.debug) {
-            console.log(`🕒 Tool call requested: ${toolCallEvent.value.name}`);
-          }
-        } else if (event.type === GeminiEventType.ChatCompressed) {
-          if (this.debug) {
-            console.log('📦 Chat history was compressed');
-          }
+      for await (const response of stream) {
+        const text = response.candidates?.[0]?.content?.parts?.[0]?.text;
+        if (text) {
+          yield text;
         }
       }
     } catch (error) {
@@ -185,33 +175,32 @@ class EngineService {
     const abortController = new AbortController();
     
     try {
-      const stream = this.client.sendMessageStream(
-        [{ text: fullMessage }],
-        abortController.signal,
-      );
+      const chat = this.client.getChat();
+      const stream = await chat.sendMessageStream({
+        message: { text: fullMessage },
+        config: {
+          abortSignal: abortController.signal,
+        },
+      });
 
-      for await (const event of stream) {
-        if (event.type === GeminiEventType.Content) {
-          const contentEvent = event as ServerGeminiContentEvent;
-          const token = contentEvent.value || '';
-          yield { type: 'text', data: token };
-        } else if (event.type === GeminiEventType.ToolCallRequest) {
-          const toolCallEvent = event as ServerGeminiToolCallRequestEvent;
+      for await (const response of stream) {
+        const text = response.candidates?.[0]?.content?.parts?.[0]?.text;
+        if (text) {
+          yield { type: 'text', data: text };
+        }
+        
+        const functionCalls = response.functionCalls ?? [];
+        for (const fnCall of functionCalls) {
           yield {
             type: 'tool_request',
             data: {
-              callId: toolCallEvent.value.callId,
-              name: toolCallEvent.value.name,
-              args: toolCallEvent.value.args
+              callId: fnCall.id || `${fnCall.name}-${Date.now()}`,
+              name: fnCall.name || 'unknown',
+              args: fnCall.args || {}
             }
           };
           if (this.debug) {
-            console.log(`🕒 Tool call requested: ${toolCallEvent.value.name}`);
-          }
-        } else if (event.type === GeminiEventType.ChatCompressed) {
-          yield { type: 'chat_compressed', data: event.value };
-          if (this.debug) {
-            console.log('📦 Chat history was compressed');
+            console.log(`🕒 Tool call requested: ${fnCall.name}`);
           }
         }
       }
