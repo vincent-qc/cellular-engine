@@ -130,15 +130,12 @@ class DockerEngineService {
         throw new Error(`Stream request failed: ${stream.status} ${stream.statusText}`);
       }
 
-      console.log("Stream OK");
-
       const reader = stream.body?.getReader();
       if (!reader) throw new Error("Reader not found");
 
       try {
         while (true) {
           const { done, value } = await reader.read();
-          console.log(`SHOULD SEND: `, value);
           if (done) break;
           socket.emit('stream-data', value);
         }
