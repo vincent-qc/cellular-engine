@@ -122,7 +122,7 @@ class DockerEngineService {
     try {
       const stream = await fetch(`http://localhost:${this.port}/docker/stream`, {
         method: 'POST',
-        headers: { 'Content-Type': 'text/event-stream' },
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ prompt })
       });
 
