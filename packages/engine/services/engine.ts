@@ -85,7 +85,7 @@ class EngineService {
     if (!sessionId || !sessionId.trim()) {
       this.sessionId = randomUUID().toString();
       if (debug) {
-        console.log(`⚙️ No session ID provided, generating new one: ${sessionId}`);
+        console.log(`⚙️ No session ID provided, generating new one: ${this.sessionId}`);
       }
     } else {
       this.sessionId = sessionId;
