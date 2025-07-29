@@ -148,7 +148,7 @@ class DockerEngineService {
           // Handle multiline SSE
           const lines = decoded.split('\n');
           for (const line of lines) {
-
+            if (this.config.debug) console.log("handling line: ", line);
             // Check for formatting & parse
             if (!line.startsWith('data: ')) throw new Error("SSE not formatted correctly.");
             const data = JSON.parse(line.slice('data: '.length));
