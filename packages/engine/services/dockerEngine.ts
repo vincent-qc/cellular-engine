@@ -140,10 +140,16 @@ class DockerEngineService {
         while (true) {
           const { done, value } = await reader.read();
           if (done) break;
+
+          // First decode UINT8 array into string
           const decoded = decoder.decode(value, { stream: true });
           if (this.config.debug) console.log("-- Decoded Chunk --: \n", decoded, "\n -- Decoded End --");
+
+          // Handle multiline SSE
           const lines = decoded.split('\n');
           for (const line of lines) {
+
+            // Check for formatting & parse
             if (!line.startsWith('data: ')) throw new Error("SSE not formatted correctly.");
             const data = JSON.parse(line.slice('data: '.length));
             socket.emit('stream-data', data);
