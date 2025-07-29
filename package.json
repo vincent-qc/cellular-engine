@@ -1,6 +1,6 @@
 {
   "name": "@cellular-ai/engine",
-  "version": "1.2.2",
+  "version": "1.2.3",
   "description": "API for building custom AI coding editors/agents/platforms",
   "keywords": [
     "engine",
