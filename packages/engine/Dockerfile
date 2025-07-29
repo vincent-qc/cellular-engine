@@ -1,5 +1,10 @@
 FROM node:20-slim
 
+# Install system utilities including procps (which provides pgrep)
+RUN apt-get update && apt-get install -y \
+    procps \
+    && rm -rf /var/lib/apt/lists/*
+
 # Set working directory
 WORKDIR /app
 

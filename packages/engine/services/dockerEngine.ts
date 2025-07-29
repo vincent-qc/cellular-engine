@@ -141,8 +141,10 @@ class DockerEngineService {
           const { done, value } = await reader.read();
           if (done) break;
           const decoded = decoder.decode(value, { stream: true });
+          if(this.config.debug) console.log("\nDECODED: ", decoded);
           if (!decoded.startsWith('data: ')) throw new Error("SSE not formatted correctly.");
           const data = JSON.parse(decoded.slice('data: '.length));
+          if(this.config.debug) console.log("\nSLICED: ", data);
           socket.emit('stream-data', data);
         }
       } finally {
