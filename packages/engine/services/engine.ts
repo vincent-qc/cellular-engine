@@ -98,7 +98,7 @@ class EngineService {
       fullContext,
       sessionId: this.sessionId,
       cwd: dir,
-      model: model === 'pro' ? DEFAULT_GEMINI_MODEL : (model === 'mini' ? "gemini-1.5-flash" : DEFAULT_GEMINI_FLASH_MODEL)
+      model: model === 'pro' ? DEFAULT_GEMINI_MODEL : (model === 'mini' ? "gemini-2.0-flash" : DEFAULT_GEMINI_FLASH_MODEL)
     })
 
     this.client = new GeminiClient(this.config);
